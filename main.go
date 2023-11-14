@@ -6,16 +6,21 @@ import (
 	"github.com/tmw/pathfind/pkg/prioqueue"
 )
 
-func main() {
-	pq := prioqueue.New()
-	pq.Push("banana", 10)
+type Fruit struct {
+	name string
+}
 
-	pq.Push("pear", 6)
-	pq.Push("strawberry", 8)
-	pq.Push("melon", 17)
+func main() {
+	// party with guests ranked by popularity?
+	pq := prioqueue.New[Fruit]()
+
+	pq.Push(Fruit{"Apple"}, 10)
+	pq.Push(Fruit{"pear"}, 6)
+	pq.Push(Fruit{"strawberry"}, 8)
+	pq.Push(Fruit{"melon"}, 17)
 
 	for pq.Len() > 0 {
 		item := pq.PopItem()
-		fmt.Printf("%s => %d\n", item.Value, item.Priority())
+		fmt.Printf("%s => %d\n", item.Value.name, item.Priority())
 	}
 }
