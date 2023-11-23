@@ -1,4 +1,4 @@
-package parser
+package arena
 
 import (
 	"strings"

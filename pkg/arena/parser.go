@@ -1,4 +1,4 @@
-package parser
+package arena
 
 import (
 	"errors"
@@ -23,39 +23,6 @@ const (
 	SymbolFinish      = "F"
 	SymbolPath        = "@"
 )
-
-type CellType uint8
-
-func (t CellType) String() string {
-	switch t {
-	case CellTypeNonWalkable:
-		return SymbolNonWalkable
-
-	case CellTypeStart:
-		return SymbolStart
-
-	case CellTypeFinish:
-		return SymbolFinish
-
-	case CellTypeWalkable:
-		return SymbolWalkable
-
-	default:
-		return SymbolWalkable
-	}
-}
-
-const (
-	CellTypeWalkable CellType = iota
-	CellTypeNonWalkable
-	CellTypeStart
-	CellTypeFinish
-	TyileTypePath
-)
-
-type Coordinate struct {
-	x, y int
-}
 
 type Map struct {
 	cells     [][]CellType
@@ -133,23 +100,4 @@ func findStartAndFinish(cells [][]CellType) (*Coordinate, *Coordinate, error) {
 	}
 
 	return start, finish, nil
-}
-
-func symbolToType(i string) CellType {
-	switch i {
-	case SymbolNonWalkable:
-		return CellTypeNonWalkable
-
-	case SymbolStart:
-		return CellTypeStart
-
-	case SymbolFinish:
-		return CellTypeFinish
-
-	case SymbolWalkable:
-		return CellTypeWalkable
-
-	default:
-		return CellTypeWalkable
-	}
 }
