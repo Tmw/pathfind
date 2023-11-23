@@ -14,7 +14,7 @@ func TestParseThenRender(t *testing.T) {
 		"#..................#\n" +
 		"#..................#\n" +
 		"#..................#\n" +
-		"#..........E.......#\n" +
+		"#..........F.......#\n" +
 		"#..................#\n" +
 		"####################"
 
@@ -39,7 +39,7 @@ func TestParseValdiation_NoStart(t *testing.T) {
 		"#..................#\n" +
 		"#..................#\n" +
 		"#..................#\n" +
-		"#............E.....#\n" +
+		"#............F.....#\n" +
 		"#..................#\n" +
 		"#..................#\n" +
 		"####################"
@@ -50,7 +50,7 @@ func TestParseValdiation_NoStart(t *testing.T) {
 	}
 }
 
-func TestParseValdiation_NoEnd(t *testing.T) {
+func TestParseValdiation_NoFinish(t *testing.T) {
 	const mapInput = "" +
 		"####################\n" +
 		"#..................#\n" +
@@ -64,8 +64,8 @@ func TestParseValdiation_NoEnd(t *testing.T) {
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidMapNoEnd {
-		t.Fatalf("expected InvalidMapNoEnd error but got %v", err)
+	if err != InvalidMapNoFinish {
+		t.Fatalf("expected InvalidMapNoFinish error but got %v", err)
 	}
 }
 
@@ -88,7 +88,7 @@ func TestParseValdiation_MultipleStart(t *testing.T) {
 	}
 }
 
-func TestParseValdiation_MultipleEnd(t *testing.T) {
+func TestParseValdiation_MultipleFinish(t *testing.T) {
 	const mapInput = "" +
 		"####################\n" +
 		"#..................#\n" +
@@ -96,14 +96,14 @@ func TestParseValdiation_MultipleEnd(t *testing.T) {
 		"#.....S............#\n" +
 		"#..................#\n" +
 		"#..................#\n" +
-		"#.....E......E.....#\n" +
+		"#.....F......F.....#\n" +
 		"#..................#\n" +
 		"#..................#\n" +
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidMapMultipleEnd {
-		t.Fatalf("expected InvalidMapMultipleEnd error but got %v", err)
+	if err != InvalidMapMultipleFinish {
+		t.Fatalf("expected InvalidMapMultipleFinish error but got %v", err)
 	}
 }
 

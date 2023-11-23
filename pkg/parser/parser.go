@@ -10,34 +10,34 @@ import (
 )
 
 var (
-	InvalidMapNoStart       = errors.New("invalid map: no start tile found")
-	InvalidMapNoEnd         = errors.New("invalid map: no end tile found")
-	InvalidMapMultipleStart = errors.New("invalid map: multiple start tiles found")
-	InvalidMapMultipleEnd   = errors.New("invalid map: multiple end tiles found")
+	InvalidMapNoStart        = errors.New("invalid map: no start cell found")
+	InvalidMapNoFinish       = errors.New("invalid map: no finish cell found")
+	InvalidMapMultipleStart  = errors.New("invalid map: multiple start cells found")
+	InvalidMapMultipleFinish = errors.New("invalid map: multiple finish cells found")
 )
 
 const (
 	SymbolNonWalkable = "#"
 	SymbolWalkable    = "."
 	SymbolStart       = "S"
-	SymbolEnd         = "E"
+	SymbolFinish      = "F"
 	SymbolPath        = "@"
 )
 
-type TileType uint8
+type CellType uint8
 
-func (t TileType) String() string {
+func (t CellType) String() string {
 	switch t {
-	case TileTypeNonWalkable:
+	case CellTypeNonWalkable:
 		return SymbolNonWalkable
 
-	case TileTypeStart:
+	case CellTypeStart:
 		return SymbolStart
 
-	case TileTypeEnd:
-		return SymbolEnd
+	case CellTypeFinish:
+		return SymbolFinish
 
-	case TileTypeWalkable:
+	case CellTypeWalkable:
 		return SymbolWalkable
 
 	default:
@@ -46,82 +46,110 @@ func (t TileType) String() string {
 }
 
 const (
-	TileTypeWalkable TileType = iota
-	TileTypeNonWalkable
-	TileTypeStart
-	TileTypeEnd
+	CellTypeWalkable CellType = iota
+	CellTypeNonWalkable
+	CellTypeStart
+	CellTypeFinish
 	TyileTypePath
 )
 
-type Map [][]TileType
+type Coordinate struct {
+	x, y int
+}
+
+type Map struct {
+	cells     [][]CellType
+	startCell Coordinate
+	endCell   Coordinate
+}
 
 // render the map into the writer
 func (m Map) Render(w io.Writer) {
-	for x := range m {
+	for x := range m.cells {
 		if x > 0 {
 			fmt.Fprintf(w, "\n")
 		}
 
-		for y := range m[x] {
-			fmt.Fprintf(w, m[x][y].String())
+		for y := range m.cells[x] {
+			fmt.Fprintf(w, m.cells[x][y].String())
 		}
 	}
 }
 
-func Parse(floor string) (Map, error) {
-	if err := valdiateInput(floor); err != nil {
+func Parse(input string) (*Map, error) {
+	lines := strings.Split(strings.TrimSpace(input), "\n")
+	cells := make([][]CellType, len(lines))
+	for i := range cells {
+		cells[i] = slice.Map(strings.Split(lines[i], ""), symbolToType)
+	}
+
+	start, stop, err := findStartAndFinish(cells)
+	if err != nil {
 		return nil, err
 	}
 
-	lines := strings.Split(strings.TrimSpace(floor), "\n")
-	m := make([][]TileType, len(lines))
-	for i := range m {
-		m[i] = slice.Map(strings.Split(lines[i], ""), symbolToType)
+	m := &Map{
+		cells:     cells,
+		startCell: *start,
+		endCell:   *stop,
 	}
 
 	return m, nil
 }
 
-func valdiateInput(input string) error {
+func findStartAndFinish(cells [][]CellType) (*Coordinate, *Coordinate, error) {
 	var (
-		startCount = strings.Count(input, SymbolStart)
-		endCount   = strings.Count(input, SymbolEnd)
+		start  *Coordinate
+		finish *Coordinate
 	)
 
-	if startCount == 0 {
-		return InvalidMapNoStart
+	for y := range cells {
+		for x := range cells[y] {
+			cell := cells[y][x]
+			if cell == CellTypeStart {
+				if start != nil {
+					return start, finish, InvalidMapMultipleStart
+				}
+
+				start = &Coordinate{x: x, y: y}
+			}
+
+			if cell == CellTypeFinish {
+				if finish != nil {
+					return start, finish, InvalidMapMultipleFinish
+				}
+
+				finish = &Coordinate{x: x, y: y}
+			}
+		}
 	}
 
-	if startCount > 1 {
-		return InvalidMapMultipleStart
+	if start == nil {
+		return start, finish, InvalidMapNoStart
 	}
 
-	if endCount == 0 {
-		return InvalidMapNoEnd
+	if finish == nil {
+		return start, finish, InvalidMapNoFinish
 	}
 
-	if endCount > 1 {
-		return InvalidMapMultipleEnd
-	}
-
-	return nil
+	return start, finish, nil
 }
 
-func symbolToType(i string) TileType {
+func symbolToType(i string) CellType {
 	switch i {
 	case SymbolNonWalkable:
-		return TileTypeNonWalkable
+		return CellTypeNonWalkable
 
 	case SymbolStart:
-		return TileTypeStart
+		return CellTypeStart
 
-	case SymbolEnd:
-		return TileTypeEnd
+	case SymbolFinish:
+		return CellTypeFinish
 
 	case SymbolWalkable:
-		return TileTypeWalkable
+		return CellTypeWalkable
 
 	default:
-		return TileTypeWalkable
+		return CellTypeWalkable
 	}
 }
