@@ -33,6 +33,16 @@ func (p *Prioqueue[T]) Contains(item T) bool {
 	return false
 }
 
+func (p *Prioqueue[T]) ContainsFunc(item T, fn func(T) bool) bool {
+	for _, i := range p.inner {
+		if fn(i.Value) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (p *Prioqueue[T]) DebugPrintContents() {
 	for _, i := range p.inner {
 		fmt.Printf("item = %+v; priority = %d\n", i.Value, i.priority)

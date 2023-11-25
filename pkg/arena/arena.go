@@ -42,6 +42,23 @@ func (m *Arena) RenderWithVisited(w io.Writer, visited []Coordinate) {
 	}
 }
 
+func (m *Arena) RenderWithPath(w io.Writer, path []Coordinate) {
+	for y := range m.cells {
+		if y > 0 {
+			fmt.Fprintf(w, "\n")
+		}
+
+		for x := range m.cells[y] {
+			c := Coordinate{x: x, y: y}
+			if slices.Contains(path, c) {
+				fmt.Fprint(w, "@")
+			} else {
+				fmt.Fprintf(w, m.cells[y][x].String())
+			}
+		}
+	}
+}
+
 func (m *Arena) safeGetCell(c Coordinate) *CellType {
 	if c.y < 0 {
 		return nil

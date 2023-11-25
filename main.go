@@ -31,9 +31,15 @@ const input = `
 ##############################
 `
 
+type node struct {
+	coord  arena.Coordinate
+	parent *node
+}
+
 type walker struct {
-	candidates *prioqueue.Prioqueue[arena.Coordinate]
+	candidates *prioqueue.Prioqueue[node]
 	visited    []arena.Coordinate
+	path       *[]arena.Coordinate
 
 	// TODO: Instead of taking these as functions, perhaps make this an interface?
 	neighboursFn            func(arena.Coordinate) []arena.Coordinate
@@ -43,7 +49,6 @@ type walker struct {
 
 type done bool
 
-var looking arena.Coordinate
 var visitedLen int
 
 func (w *walker) step() done {
@@ -57,14 +62,23 @@ func (w *walker) step() done {
 	}
 
 	item := w.candidates.PopItem()
-	coord, _ := item.Value, item.Priority()
-	looking = item.Value
+	currentNode, _ := item.Value, item.Priority()
 
-	if t := w.cellTypeForCoordinateFn(coord); t != nil && *t == finish {
+	if t := w.cellTypeForCoordinateFn(currentNode.coord); t != nil && *t == finish {
+
+		w.path = &[]arena.Coordinate{}
+
+		var hop node = currentNode
+		for hop.parent != nil {
+			*w.path = append(*w.path, hop.coord)
+			hop = *hop.parent
+		}
+
+		// we found the finish, now backtrack.
 		return true
 	}
 
-	neighbours := w.neighboursFn(coord)
+	neighbours := w.neighboursFn(currentNode.coord)
 	for _, n := range neighbours {
 		isAlreadyVisited := slices.Contains(w.visited, n)
 		isNonWalkable := *w.cellTypeForCoordinateFn(n) == nonWalkable
@@ -75,26 +89,28 @@ func (w *walker) step() done {
 
 		// TODO: I think in order to make it actually find the quickest path,
 		// it'll need to update the candidate if it's already in the heap,
-		// and update its cost.
-		// and in order to be able to return and mark a path, we'll need
-		// keep track of where it came from. So for each candidate, I think we'll need to store its "parent"
-		// as well?
-		if !w.candidates.Contains(n) {
+		// and update its cost and parent node.
+		nn := node{
+			coord:  n,
+			parent: &currentNode,
+		}
+
+		predicate := func(i node) bool {
+			return i.coord == nn.coord
+		}
+
+		if !w.candidates.ContainsFunc(nn, predicate) {
 			// push candidate to the list.
 			neighbourCost := w.distanceToFinishFn(n)
 			// if candidate exist, we should update its cost.
-			w.candidates.Push(n, neighbourCost)
+			w.candidates.Push(nn, neighbourCost)
 		}
 	}
 
-	w.visited = append(w.visited, coord)
+	w.visited = append(w.visited, currentNode.coord)
 	visitedLen = len(w.visited)
 
 	return false
-}
-
-func costForCoordinate(c, start, finish arena.Coordinate) int {
-	return c.DistanceTo(finish)
 }
 
 func main() {
@@ -103,8 +119,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := prioqueue.New[arena.Coordinate]()
-	c.Push(m.StartCoordinate(), costForCoordinate(m.StartCoordinate(), m.StartCoordinate(), m.FinishCoordinate()))
+	n := node{
+		coord:  m.StartCoordinate(),
+		parent: nil,
+	}
+
+	c := prioqueue.New[node]()
+	c.Push(n, m.StartCoordinate().DistanceTo(m.FinishCoordinate()))
 
 	w := walker{
 		candidates: c,
@@ -125,29 +146,16 @@ func main() {
 	}
 
 	for !w.step() {
-		m.RenderWithVisited(os.Stdout, w.visited)
-		fmt.Printf("\n\nlooking=%+v\n", looking)
-		fmt.Printf("visitedLen=%+v\n", visitedLen)
-		fmt.Printf("candidatesLen=%+v\n", w.candidates.Len())
-		fmt.Printf("distance=%+v\n", looking.DistanceTo(m.FinishCoordinate()))
-
-		time.Sleep(80 * time.Millisecond)
 		fmt.Printf("\033[H\033[2J")
-		// clear the screen?
-		// render out the thing?
-		// sleep for a bit?
+		m.RenderWithVisited(os.Stdout, w.visited)
+		fmt.Printf("\n\n-> visitedLen=%+v\n", visitedLen)
+		fmt.Printf("-> candidatesLen=%+v\n", w.candidates.Len())
+
+		time.Sleep(40 * time.Millisecond)
 	}
 
-	// pq := prioqueue.New[string]()
-	//
-	// pq.Push("wut 10", 10)
-	// pq.Push("wut 11", 11)
-	// pq.Push("wut 8", 8)
-	//
-	// for pq.Len() > 0 {
-	// 	item := pq.PopItem()
-	// 	fmt.Printf("%s => %d\n", item.Value, item.Priority())
-	// }
-	//
-	// fmt.Print(Floor)
+	if w.path != nil {
+		fmt.Printf("\033[H\033[2J")
+		m.RenderWithPath(os.Stdout, *w.path)
+	}
 }
