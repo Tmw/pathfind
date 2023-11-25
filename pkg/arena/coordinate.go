@@ -11,8 +11,8 @@ func NewCoordinate(x, y int) Coordinate {
 }
 
 func (c Coordinate) DistanceTo(t Coordinate) int {
-	n := (c.x - t.x) + (c.y - t.y)
-	return int(math.Abs(float64(n)))
+	n := math.Abs(float64(c.x-t.x)) + math.Abs(float64(c.y-t.y))
+	return int(n)
 }
 
 func (c Coordinate) North() Coordinate { return Coordinate{y: c.y - 1, x: c.x} }

@@ -7,7 +7,7 @@ const (
 	CellTypeNonWalkable
 	CellTypeStart
 	CellTypeFinish
-	TyileTypePath
+	CellTypePath
 )
 
 func (t CellType) String() string {

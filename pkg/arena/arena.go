@@ -3,6 +3,7 @@ package arena
 import (
 	"fmt"
 	"io"
+	"slices"
 )
 
 type Arena struct {
@@ -20,6 +21,23 @@ func (m *Arena) Render(w io.Writer) {
 
 		for y := range m.cells[x] {
 			fmt.Fprintf(w, m.cells[x][y].String())
+		}
+	}
+}
+
+func (m *Arena) RenderWithVisited(w io.Writer, visited []Coordinate) {
+	for y := range m.cells {
+		if y > 0 {
+			fmt.Fprintf(w, "\n")
+		}
+
+		for x := range m.cells[y] {
+			c := Coordinate{x: x, y: y}
+			if slices.Contains(visited, c) {
+				fmt.Fprint(w, "v")
+			} else {
+				fmt.Fprintf(w, m.cells[y][x].String())
+			}
 		}
 	}
 }

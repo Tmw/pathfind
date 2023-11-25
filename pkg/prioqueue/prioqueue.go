@@ -2,34 +2,52 @@ package prioqueue
 
 import (
 	"container/heap"
+	"fmt"
 )
 
-type Prioqueue[T any] struct {
-	inner *pq[T]
+type Prioqueue[T comparable] struct {
+	inner pq[T]
 }
 
-func New[T any]() *Prioqueue[T] {
-	return &Prioqueue[T]{inner: new(pq[T])}
+func New[T comparable]() *Prioqueue[T] {
+	return &Prioqueue[T]{inner: pq[T]{}}
 }
 
 func (p *Prioqueue[T]) Push(item T, prio int) {
 	n := newNode(item, prio)
-	heap.Push(p.inner, n)
+	heap.Push(&p.inner, n)
 }
 
 func (p *Prioqueue[T]) PopValue() T {
 	return p.PopItem().Value
 }
 
+func (p *Prioqueue[T]) Contains(item T) bool {
+	// TODO: We can optimize this
+	for _, i := range p.inner {
+		if i.Value == item {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *Prioqueue[T]) DebugPrintContents() {
+	for _, i := range p.inner {
+		fmt.Printf("item = %+v; priority = %d\n", i.Value, i.priority)
+	}
+}
+
 func (p *Prioqueue[T]) PopItem() Item[T] {
-	item := heap.Pop(p.inner)
+	item := heap.Pop(&p.inner)
 	return *item.(*Item[T])
 }
 
 func (p *Prioqueue[T]) Len() int { return p.inner.Len() }
 
 // inner implementation
-type Item[T any] struct {
+type Item[T comparable] struct {
 	Value    T
 	priority int
 	index    int
@@ -39,14 +57,14 @@ func (i Item[T]) Priority() int {
 	return i.priority
 }
 
-func newNode[T any](val T, prio int) *Item[T] {
+func newNode[T comparable](val T, prio int) *Item[T] {
 	return &Item[T]{
 		Value:    val,
 		priority: prio,
 	}
 }
 
-type pq[T any] []*Item[T]
+type pq[T comparable] []*Item[T]
 
 func (p pq[T]) Len() int {
 	return len(p)
