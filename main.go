@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 	"time"
 
 	"github.com/tmw/pathfind/pkg/arena"
@@ -39,7 +38,7 @@ type node struct {
 
 type walker struct {
 	candidates *prioqueue.Prioqueue[node]
-	visited    []arena.Coordinate
+	visited    map[arena.Coordinate]struct{}
 
 	// TODO: Instead of taking these as functions, perhaps make this an interface?
 	neighboursFn            func(arena.Coordinate) []arena.Coordinate
@@ -71,7 +70,7 @@ func (w *walker) Walk() path {
 
 		neighbours := w.neighboursFn(currentNode.coord)
 		for _, n := range neighbours {
-			isAlreadyVisited := slices.Contains(w.visited, n)
+			_, isAlreadyVisited := w.visited[n]
 			isNonWalkable := *w.cellTypeForCoordinateFn(n) == nonWalkable
 
 			if isAlreadyVisited || isNonWalkable {
@@ -103,7 +102,7 @@ func (w *walker) Walk() path {
 				w.candidates.Push(nn, neighbourCost)
 			}
 		}
-		w.visited = append(w.visited, currentNode.coord)
+		w.visited[currentNode.coord] = struct{}{}
 	}
 
 	return path
@@ -125,7 +124,7 @@ func main() {
 
 	w := walker{
 		candidates: c,
-		visited:    []arena.Coordinate{},
+		visited:    map[arena.Coordinate]struct{}{},
 
 		// functions to interface with the arena
 		neighboursFn: func(c arena.Coordinate) []arena.Coordinate {
@@ -151,4 +150,5 @@ func main() {
 	}
 
 	fmt.Printf("\n\nsolve duration: %v\n", d)
+	fmt.Printf("visited count: %v\n", len(w.visited))
 }
