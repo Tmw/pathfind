@@ -43,6 +43,26 @@ func (p *Prioqueue[T]) ContainsFunc(item T, fn func(T) bool) bool {
 	return false
 }
 
+func (p *Prioqueue[T]) IndexFunc(fn func(T) bool) int {
+	for idx := range p.inner {
+		if fn(p.inner[idx].Value) {
+			return idx
+		}
+	}
+
+	return -1
+}
+
+func (p *Prioqueue[T]) PeekItem(idx int) *Item[T] {
+	return p.inner[idx]
+}
+
+func (p *Prioqueue[T]) UpdateAtIndex(idx int, item T, prio int) {
+	p.inner[idx].Value = item
+	p.inner[idx].priority = prio
+	heap.Fix(&p.inner, idx)
+}
+
 func (p *Prioqueue[T]) DebugPrintContents() {
 	for _, i := range p.inner {
 		fmt.Printf("item = %+v; priority = %d\n", i.Value, i.priority)
