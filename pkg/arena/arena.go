@@ -59,47 +59,43 @@ func (m *Arena) RenderWithPath(w io.Writer, path []Coordinate) {
 	}
 }
 
-func (m *Arena) safeGetCell(c Coordinate) *CellType {
-	if c.y < 0 {
-		return nil
-	}
-	if c.y >= len(m.cells) {
-		return nil
-	}
-	if c.x < 0 {
-		return nil
-	}
-	if c.x >= len(m.cells[c.y]) {
-		return nil
-	}
-
-	return &m.cells[c.y][c.x]
-}
-
 func (m *Arena) NeighboursOfCoordinate(c Coordinate) []Coordinate {
 	neighbours := []Coordinate{}
 
-	if n := c.North(); m.safeGetCell(n) != nil {
+	if n := c.North(); m.CellTypeForCoordinate(n) != CellTypeUndefined {
 		neighbours = append(neighbours, n)
 	}
 
-	if n := c.West(); m.safeGetCell(n) != nil {
+	if n := c.West(); m.CellTypeForCoordinate(n) != CellTypeUndefined {
 		neighbours = append(neighbours, n)
 	}
 
-	if n := c.South(); m.safeGetCell(n) != nil {
+	if n := c.South(); m.CellTypeForCoordinate(n) != CellTypeUndefined {
 		neighbours = append(neighbours, n)
 	}
 
-	if n := c.East(); m.safeGetCell(n) != nil {
+	if n := c.East(); m.CellTypeForCoordinate(n) != CellTypeUndefined {
 		neighbours = append(neighbours, n)
 	}
 
 	return neighbours
 }
 
-func (m *Arena) CellTypeForCoordinate(c Coordinate) *CellType {
-	return m.safeGetCell(c)
+func (m *Arena) CellTypeForCoordinate(c Coordinate) CellType {
+	if c.y < 0 {
+		return CellTypeUndefined
+	}
+	if c.y >= len(m.cells) {
+		return CellTypeUndefined
+	}
+	if c.x < 0 {
+		return CellTypeUndefined
+	}
+	if c.x >= len(m.cells[c.y]) {
+		return CellTypeUndefined
+	}
+
+	return m.cells[c.y][c.x]
 }
 
 func (m *Arena) StartCoordinate() Coordinate {

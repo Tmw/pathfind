@@ -3,7 +3,8 @@ package arena
 type CellType uint8
 
 const (
-	CellTypeWalkable CellType = iota
+	CellTypeUndefined CellType = iota
+	CellTypeWalkable
 	CellTypeNonWalkable
 	CellTypeStart
 	CellTypeFinish

@@ -46,7 +46,7 @@ func TestParseValdiation_NoStart(t *testing.T) {
 
 	_, err := Parse(mapInput)
 	if err != InvalidArenaNoStart {
-		t.Fatalf("expected InvalidArenaNoStart error but got %v", err)
+		t.Errorf("expected InvalidArenaNoStart error but got %v", err)
 	}
 }
 
@@ -65,7 +65,7 @@ func TestParseValdiation_NoFinish(t *testing.T) {
 
 	_, err := Parse(mapInput)
 	if err != InvalidArenaNoFinish {
-		t.Fatalf("expected InvalidArenaNoFinish error but got %v", err)
+		t.Errorf("expected InvalidArenaNoFinish error but got %v", err)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestParseValdiation_MultipleStart(t *testing.T) {
 
 	_, err := Parse(mapInput)
 	if err != InvalidArenaMultipleStart {
-		t.Fatalf("expected InvalidArenaMultipleStart error but got %v", err)
+		t.Errorf("expected InvalidArenaMultipleStart error but got %v", err)
 	}
 }
 
@@ -103,18 +103,18 @@ func TestParseValdiation_MultipleFinish(t *testing.T) {
 
 	_, err := Parse(mapInput)
 	if err != InvalidArenaMultipleFinish {
-		t.Fatalf("expected InvalidArenaMultipleFinish error but got %v", err)
+		t.Errorf("expected InvalidArenaMultipleFinish error but got %v", err)
 	}
 }
 
 func compare(t *testing.T, a, b string) {
 	if len(a) != len(b) {
-		t.Fatalf("lengths do not match. len(a) = %d; len(b) = %d\n", len(a), len(b))
+		t.Errorf("lengths do not match. len(a) = %d; len(b) = %d\n", len(a), len(b))
 	}
 
 	for i := range a {
 		if a[i] != b[i] {
-			t.Fatalf("strings do not match\na[%d] = '%x'; b[%d] = '%x'\n", i, a[i], i, b[i])
+			t.Errorf("strings do not match\na[%d] = '%x'; b[%d] = '%x'\n", i, a[i], i, b[i])
 		}
 	}
 }

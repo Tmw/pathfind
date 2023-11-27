@@ -22,18 +22,18 @@ const (
 )
 
 func TestNeighboursOfCoordinate(t *testing.T) {
-	cases := []struct {
+	tests := map[string]struct {
 		c Coordinate
 		e []Coordinate
 	}{
-		{
+		"in upper left corner": {
 			c: NewCoordinate(0, 0),
 			e: []Coordinate{
 				NewCoordinate(0, 1),
 				NewCoordinate(1, 0),
 			},
 		},
-		{
+		"in middle of the arena": {
 			c: NewCoordinate(4, 4),
 			e: []Coordinate{
 				NewCoordinate(3, 4),
@@ -42,19 +42,26 @@ func TestNeighboursOfCoordinate(t *testing.T) {
 				NewCoordinate(4, 5),
 			},
 		},
-		{
+		"with nevative coordinates": {
 			c: NewCoordinate(-5, -5),
 			e: []Coordinate{},
 		},
-		{
+		"out of scope coordinates": {
 			c: NewCoordinate(50, 200),
 			e: []Coordinate{},
 		},
-		{
+		"on upper right corner": {
 			c: NewCoordinate(12, 0),
 			e: []Coordinate{
 				NewCoordinate(11, 0),
 				NewCoordinate(12, 1),
+			},
+		},
+		"on bottom right corner": {
+			c: NewCoordinate(12, 7),
+			e: []Coordinate{
+				NewCoordinate(11, 7),
+				NewCoordinate(12, 6),
 			},
 		},
 	}
@@ -64,53 +71,50 @@ func TestNeighboursOfCoordinate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, c := range cases {
-		actual := a.NeighboursOfCoordinate(c.c)
-		match := slice.All(actual, func(n Coordinate) bool {
-			return slices.Contains(c.e, n)
-		})
+	for name, td := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-		if !match {
-			t.Fatalf("expected neighbours of %+v to be: %+v but received: %+v", c.c, c.e, actual)
-		}
+			actual := a.NeighboursOfCoordinate(td.c)
+			match := slice.All(actual, func(n Coordinate) bool {
+				return slices.Contains(td.e, n)
+			})
+
+			if !match {
+				t.Errorf("expected neighbours of %+v to be: %+v but received: %+v", td.c, td.e, actual)
+			}
+		})
 	}
 }
 
 func TestCellTypeForCoordinate(t *testing.T) {
-	var (
-		nonWalkable = CellTypeNonWalkable
-		walkable    = CellTypeWalkable
-		start       = CellTypeStart
-		finish      = CellTypeFinish
-	)
-
-	cases := []struct {
+	tests := map[string]struct {
 		c Coordinate
-		e *CellType
+		e CellType
 	}{
-		{
+		"cell is non-walkable": {
 			c: NewCoordinate(0, 0),
-			e: &nonWalkable,
+			e: CellTypeNonWalkable,
 		},
-		{
+		"cell is walkable": {
 			c: NewCoordinate(1, 3),
-			e: &walkable,
+			e: CellTypeWalkable,
 		},
-		{
+		"cell is starting point": {
 			c: NewCoordinate(2, 1),
-			e: &start,
+			e: CellTypeStart,
 		},
-		{
+		"cell is finish point": {
 			c: NewCoordinate(6, 4),
-			e: &finish,
+			e: CellTypeFinish,
 		},
-		{
+		"cell does not exist": {
 			c: NewCoordinate(-1, -1),
-			e: nil,
+			e: CellTypeUndefined,
 		},
-		{
+		"cell is out of scope": {
 			c: NewCoordinate(50, 200),
-			e: nil,
+			e: CellTypeUndefined,
 		},
 	}
 
@@ -119,11 +123,15 @@ func TestCellTypeForCoordinate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, c := range cases {
-		actual := a.CellTypeForCoordinate(c.c)
-		if !reflect.DeepEqual(actual, c.e) {
-			t.Fatalf("expected CellType on coordinate %+v to be %+v but got %+v", c.c, c.e, actual)
-		}
+	for name, td := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := a.CellTypeForCoordinate(td.c)
+			if !reflect.DeepEqual(actual, td.e) {
+				t.Errorf("expected CellType on coordinate %+v to be %+v but got %+v", td.c, td.e, actual)
+			}
+		})
 	}
 }
 
@@ -137,7 +145,7 @@ func TestStartCoordinate(t *testing.T) {
 	actual := a.StartCoordinate()
 
 	if actual != expected {
-		t.Fatalf("expected StartCoordinate() to return %+v but received %+v", expected, actual)
+		t.Errorf("expected StartCoordinate() to return %+v but received %+v", expected, actual)
 	}
 }
 
@@ -151,6 +159,6 @@ func TestFinishCoordinate(t *testing.T) {
 	actual := a.FinishCoordinate()
 
 	if actual != expected {
-		t.Fatalf("expected FinishCoordinate() to return %+v but received %+v", expected, actual)
+		t.Errorf("expected FinishCoordinate() to return %+v but received %+v", expected, actual)
 	}
 }
