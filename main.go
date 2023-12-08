@@ -54,7 +54,7 @@ func (w *walker) isVisited(c arena.Coordinate) bool {
 }
 
 func (w *walker) isWalkable(c arena.Coordinate) bool {
-	return w.cellTypeForCoordinateFn(c) == arena.CellTypeNonWalkable
+	return w.cellTypeForCoordinateFn(c) != arena.CellTypeNonWalkable
 }
 
 func (w *walker) isFinish(c arena.Coordinate) bool {
