@@ -30,39 +30,39 @@ const input = `
 ##############################
 `
 
-type candidate struct {
-	coord  arena.Coordinate
-	parent *candidate
+type candidate[T comparable] struct {
+	coord  T
+	parent *candidate[T]
 	cost   int
 }
 
-type walker struct {
-	candidates *prioqueue.Prioqueue[candidate]
-	visited    map[arena.Coordinate]struct{}
+type walker[T comparable] struct {
+	candidates *prioqueue.Prioqueue[candidate[T]]
+	visited    map[T]struct{}
 
 	// TODO: Instead of taking these as functions, perhaps make this an interface?
-	neighboursFn            func(arena.Coordinate) []arena.Coordinate
-	distanceToFinishFn      func(arena.Coordinate) int
-	cellTypeForCoordinateFn func(arena.Coordinate) arena.CellType
+	neighboursFn       func(T) []T
+	distanceToFinishFn func(T) int
+
+	isCellWalkable func(T) bool
+	isCellFinish   func(T) bool
 }
 
-type path []arena.Coordinate
-
-func (w *walker) isVisited(c arena.Coordinate) bool {
+func (w *walker[T]) isVisited(c T) bool {
 	_, v := w.visited[c]
 	return v
 }
 
-func (w *walker) isWalkable(c arena.Coordinate) bool {
-	return w.cellTypeForCoordinateFn(c) != arena.CellTypeNonWalkable
+func (w *walker[T]) isWalkable(c T) bool {
+	return w.isCellWalkable(c)
 }
 
-func (w *walker) isFinish(c arena.Coordinate) bool {
-	return w.cellTypeForCoordinateFn(c) == arena.CellTypeFinish
+func (w *walker[T]) isFinish(c T) bool {
+	return w.isCellFinish(c)
 }
 
-func (w *walker) Walk() path {
-	path := []arena.Coordinate{}
+func (w *walker[T]) Walk() []T {
+	path := []T{}
 
 	for w.candidates.Len() > 0 {
 		currentNode := w.candidates.PopValue()
@@ -83,13 +83,13 @@ func (w *walker) Walk() path {
 				continue
 			}
 
-			nn := candidate{
+			nn := candidate[T]{
 				coord:  n,
 				parent: &currentNode,
 				cost:   currentNode.cost + 1,
 			}
 
-			predicate := func(i candidate) bool {
+			predicate := func(i candidate[T]) bool {
 				return i.coord == nn.coord
 			}
 
@@ -120,15 +120,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	n := candidate{
+	n := candidate[arena.Coordinate]{
 		coord:  m.StartCoordinate(),
 		parent: nil,
 	}
 
-	c := prioqueue.New[candidate]()
+	c := prioqueue.New[candidate[arena.Coordinate]]()
 	c.Push(n, m.StartCoordinate().DistanceTo(m.FinishCoordinate()))
 
-	w := walker{
+	w := walker[arena.Coordinate]{
 		candidates: c,
 		visited:    map[arena.Coordinate]struct{}{},
 
@@ -141,8 +141,12 @@ func main() {
 			return c.DistanceTo(m.FinishCoordinate())
 		},
 
-		cellTypeForCoordinateFn: func(c arena.Coordinate) arena.CellType {
-			return m.CellTypeForCoordinate(c)
+		isCellWalkable: func(c arena.Coordinate) bool {
+			return m.CellTypeForCoordinate(c) != arena.CellTypeNonWalkable
+		},
+
+		isCellFinish: func(c arena.Coordinate) bool {
+			return m.CellTypeForCoordinate(c) == arena.CellTypeFinish
 		},
 	}
 
