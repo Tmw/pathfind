@@ -33,7 +33,7 @@ func (p *Prioqueue[T]) Contains(item T) bool {
 	return false
 }
 
-func (p *Prioqueue[T]) ContainsFunc(item T, fn func(T) bool) bool {
+func (p *Prioqueue[T]) ContainsFunc(fn func(T) bool) bool {
 	for _, i := range p.inner {
 		if fn(i.Value) {
 			return true

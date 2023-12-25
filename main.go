@@ -43,9 +43,8 @@ type walker[T comparable] struct {
 	// TODO: Instead of taking these as functions, perhaps make this an interface?
 	neighboursFn       func(T) []T
 	distanceToFinishFn func(T) int
-
-	isCellWalkable func(T) bool
-	isCellFinish   func(T) bool
+	isCellWalkable     func(T) bool
+	isCellFinish       func(T) bool
 }
 
 func (w *walker[T]) isVisited(c T) bool {
@@ -103,7 +102,6 @@ func (w *walker[T]) Walk() []T {
 					}
 				}
 			} else {
-				// TODO: Abstract into its own cost function so we can reuse.
 				neighbourCost := w.distanceToFinishFn(n) + nn.cost
 				w.candidates.Push(nn, neighbourCost)
 			}
