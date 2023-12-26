@@ -2,7 +2,6 @@ package prioqueue
 
 import (
 	"container/heap"
-	"fmt"
 )
 
 type Prioqueue[T comparable] struct {
@@ -19,28 +18,7 @@ func (p *Prioqueue[T]) Push(item T, prio int) {
 }
 
 func (p *Prioqueue[T]) PopValue() T {
-	return p.PopItem().Value
-}
-
-func (p *Prioqueue[T]) Contains(item T) bool {
-	// TODO: We can optimize this
-	for _, i := range p.inner {
-		if i.Value == item {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (p *Prioqueue[T]) ContainsFunc(fn func(T) bool) bool {
-	for _, i := range p.inner {
-		if fn(i.Value) {
-			return true
-		}
-	}
-
-	return false
+	return p.popItem().Value
 }
 
 func (p *Prioqueue[T]) IndexFunc(fn func(T) bool) int {
@@ -49,7 +27,6 @@ func (p *Prioqueue[T]) IndexFunc(fn func(T) bool) int {
 			return idx
 		}
 	}
-
 	return -1
 }
 
@@ -63,13 +40,7 @@ func (p *Prioqueue[T]) UpdateAtIndex(idx int, item T, prio int) {
 	heap.Fix(&p.inner, idx)
 }
 
-func (p *Prioqueue[T]) DebugPrintContents() {
-	for _, i := range p.inner {
-		fmt.Printf("item = %+v; priority = %d\n", i.Value, i.priority)
-	}
-}
-
-func (p *Prioqueue[T]) PopItem() Item[T] {
+func (p *Prioqueue[T]) popItem() Item[T] {
 	item := heap.Pop(&p.inner)
 	return *item.(*Item[T])
 }
