@@ -30,8 +30,12 @@ func (p *Prioqueue[T]) IndexFunc(fn func(T) bool) int {
 	return -1
 }
 
-func (p *Prioqueue[T]) PeekItem(idx int) *Item[T] {
-	return p.inner[idx]
+func (p *Prioqueue[T]) PeekItem(idx int) T {
+	return p.inner[idx].Value
+}
+
+func (p *Prioqueue[T]) PriorityOfItem(idx int) int {
+	return p.inner[idx].priority
 }
 
 func (p *Prioqueue[T]) UpdateAtIndex(idx int, item T, prio int) {
@@ -40,32 +44,32 @@ func (p *Prioqueue[T]) UpdateAtIndex(idx int, item T, prio int) {
 	heap.Fix(&p.inner, idx)
 }
 
-func (p *Prioqueue[T]) popItem() Item[T] {
-	item := heap.Pop(&p.inner)
-	return *item.(*Item[T])
+func (p *Prioqueue[T]) popItem() item[T] {
+	r := heap.Pop(&p.inner)
+	return *r.(*item[T])
 }
 
 func (p *Prioqueue[T]) Len() int { return p.inner.Len() }
 
 // inner implementation
-type Item[T comparable] struct {
+type item[T comparable] struct {
 	Value    T
 	priority int
 	index    int
 }
 
-func (i Item[T]) Priority() int {
+func (i item[T]) Priority() int {
 	return i.priority
 }
 
-func newNode[T comparable](val T, prio int) *Item[T] {
-	return &Item[T]{
+func newNode[T comparable](val T, prio int) *item[T] {
+	return &item[T]{
 		Value:    val,
 		priority: prio,
 	}
 }
 
-type pq[T comparable] []*Item[T]
+type pq[T comparable] []*item[T]
 
 func (p pq[T]) Len() int {
 	return len(p)
@@ -84,7 +88,7 @@ func (p pq[T]) Swap(i, j int) {
 
 func (p *pq[T]) Push(x any) {
 	n := len(*p)
-	item := x.(*Item[T])
+	item := x.(*item[T])
 	item.index = n
 	*p = append(*p, item)
 }

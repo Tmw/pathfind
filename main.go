@@ -136,11 +136,9 @@ func (w *AStar[T]) Walk() []T {
 			existingCandidateIdx := w.candidates.IndexFunc(predicate)
 			if existingCandidateIdx > 0 {
 				existingCandidate := w.candidates.PeekItem(existingCandidateIdx)
-				if existingCandidate != nil {
-					newCost := w.adapter.DistanceToFinish(n) + existingCandidate.Value.cost
-					if newCost < existingCandidate.Priority() {
-						w.candidates.UpdateAtIndex(existingCandidateIdx, newCandidate, newCost)
-					}
+				newCost := w.adapter.DistanceToFinish(n) + existingCandidate.cost
+				if newCost < w.candidates.PriorityOfItem(existingCandidateIdx) {
+					w.candidates.UpdateAtIndex(existingCandidateIdx, newCandidate, newCost)
 				}
 			} else {
 				neighbourCost := w.adapter.DistanceToFinish(n) + newCandidate.cost

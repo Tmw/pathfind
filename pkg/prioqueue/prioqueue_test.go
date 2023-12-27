@@ -42,3 +42,17 @@ func TestPuhingAndPoppingInOrder(t *testing.T) {
 
 	assertEqual(t, out, []string{"third", "second", "first"})
 }
+
+func TestPeekItem(t *testing.T) {
+	q := New[string]()
+	q.Push("red", 10)
+	q.Push("green", 10)
+	q.Push("orange", 10)
+	q.Push("pink", 10)
+
+	got, want := q.PeekItem(2), "orange"
+
+	if got != want {
+		t.Errorf("expected %+v but got: %+v", want, got)
+	}
+}
