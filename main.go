@@ -105,7 +105,7 @@ func (w *AStar[T]) Walk() []T {
 	path := []T{}
 
 	for w.candidates.Len() > 0 {
-		currentNode := w.candidates.PopValue()
+		currentNode := w.candidates.Pop()
 
 		if w.isFinish(currentNode.coord) {
 			hop := currentNode
@@ -158,14 +158,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	n := candidate[arena.Coordinate]{
-		coord:  m.StartCoordinate(),
-		parent: nil,
-	}
-
-	c := prioqueue.New[candidate[arena.Coordinate]]()
-	c.Push(n, m.StartCoordinate().DistanceTo(m.FinishCoordinate()))
 
 	w := NewAStar[arena.Coordinate](m.StartCoordinate(), &FuncAdapter[arena.Coordinate]{
 		NeighboursFn: func(c arena.Coordinate) []arena.Coordinate {

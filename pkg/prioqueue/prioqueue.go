@@ -17,7 +17,7 @@ func (p *Prioqueue[T]) Push(item T, prio int) {
 	heap.Push(&p.inner, n)
 }
 
-func (p *Prioqueue[T]) PopValue() T {
+func (p *Prioqueue[T]) Pop() T {
 	return p.popItem().Value
 }
 
