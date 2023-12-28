@@ -1,4 +1,6 @@
 run:
 	@go run main.go
+
 test:
-	@go test ./...
+	@gotestsum
+	# @go test ./...
