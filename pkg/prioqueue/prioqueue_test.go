@@ -111,7 +111,6 @@ func TestUpdateAtIndex(t *testing.T) {
 	q.Push("pink", 40)
 
 	q.UpdateAtIndex(1, "blue", 50)
-
 	actual, expected := popAll(q), []string{"red", "orange", "pink", "blue"}
 	assertEqual(t, expected, actual)
 }
