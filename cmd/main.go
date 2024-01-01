@@ -1,39 +1,55 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"io"
 	"log"
 	"os"
-	"time"
 
 	"github.com/tmw/pathfind"
 	"github.com/tmw/pathfind/pkg/arena"
 )
 
-const input = `
-##############################
-#............................#
-#..S.........................#
-#######.#############........#
-#............................#
-#......#####################.#
-#............................#
-########.###############.....#
-#............................#
-#......########..............#
-#......#......################
-#..........#.................#
-############.....#...........#
-#......#...#.....#...........#
-#......#...#.....#......F....#
-#......#...#.....#...........#
-##############################
-`
+var (
+	filename string
+)
+
+func init() {
+	flag.StringVar(&filename, "filename", "", "path of the file to read")
+}
 
 func main() {
-	m, err := arena.Parse(input)
+	flag.Parse()
+
+	contents, err := readfile(filename)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if err := solve(contents); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func readfile(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
+}
+
+func solve(input string) error {
+	m, err := arena.Parse(input)
+	if err != nil {
+		return err
 	}
 
 	w := pathfind.NewAStar[arena.Coordinate](m.StartCoordinate(), &pathfind.FuncAdapter[arena.Coordinate]{
@@ -54,14 +70,11 @@ func main() {
 		},
 	})
 
-	start := time.Now()
 	path := w.Walk()
-	d := time.Since(start)
 
 	if path != nil {
-		fmt.Printf("\033[H\033[2J")
 		m.RenderWithPath(os.Stdout, path)
 	}
 
-	fmt.Printf("\n\nsolve duration: %v\n", d)
+	return nil
 }
