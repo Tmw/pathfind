@@ -21,7 +21,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	contents, err := readfile(filename)
+	contents, err := getContents()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,6 +29,23 @@ func main() {
 	if err := solve(contents); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getContents() (string, error) {
+	if len(filename) > 0 {
+		return readfile(filename)
+	}
+
+	return readStdin()
+}
+
+func readStdin() (string, error) {
+	bytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
 }
 
 func readfile(filename string) (string, error) {
