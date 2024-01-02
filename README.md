@@ -33,3 +33,7 @@ See examples: examples/example.sh.
 ## Library usage
 
 T.B.D
+
+## License
+
+[MIT](./LICENSE)
