@@ -10,12 +10,25 @@ Reading from file:
 go run cmd/main.go -filename examples/small.txt
 ```
 
-Reading from stdin
+Reading from `stdin`:
 
 ```console
-
 cat examples/small.txt | go run cmd/main.go
 ```
+
+Overriding symbols
+
+```console
+go run cmd/main.go \
+    -filename="examples/emoji.txt" \
+    -symbolNonWalkable="🔥" \
+    -symbolWalkable="⬜" \
+    -symbolStart="🟢" \
+    -symbolFinish="🏁" \
+    -symbolPath="🚗"
+```
+
+See examples: examples/example.sh.
 
 ## Library usage
 
