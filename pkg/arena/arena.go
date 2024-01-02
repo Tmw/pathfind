@@ -20,7 +20,7 @@ func (m *Arena) Render(w io.Writer) {
 		}
 
 		for y := range m.cells[x] {
-			fmt.Fprintf(w, m.cells[x][y].String())
+			fmt.Fprintf(w, "%s", m.cells[x][y])
 		}
 	}
 }
@@ -36,7 +36,7 @@ func (m *Arena) RenderWithVisited(w io.Writer, visited []Coordinate) {
 			if slices.Contains(visited, c) {
 				fmt.Fprint(w, "v")
 			} else {
-				fmt.Fprintf(w, m.cells[y][x].String())
+				fmt.Fprintf(w, "%s", m.cells[y][x])
 			}
 		}
 	}
@@ -51,9 +51,9 @@ func (m *Arena) RenderWithPath(w io.Writer, path []Coordinate) {
 		for x := range m.cells[y] {
 			c := Coordinate{x: x, y: y}
 			if slices.Contains(path, c) {
-				fmt.Fprint(w, "@")
+				fmt.Fprintf(w, "%s", SymbolPath)
 			} else {
-				fmt.Fprintf(w, m.cells[y][x].String())
+				fmt.Fprintf(w, "%s", m.cells[y][x])
 			}
 		}
 	}

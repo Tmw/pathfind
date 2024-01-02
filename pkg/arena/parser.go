@@ -14,7 +14,7 @@ var (
 	InvalidArenaMultipleFinish = errors.New("invalid map: multiple finish cells found")
 )
 
-const (
+var (
 	SymbolNonWalkable = "#"
 	SymbolWalkable    = "."
 	SymbolStart       = "S"
