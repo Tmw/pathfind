@@ -28,7 +28,11 @@ go run cmd/main.go \
     -symbolPath="🚗"
 ```
 
-See examples: examples/example.sh.
+See examples:
+
+```console
+examples/example.sh <small|emoji>
+```
 
 ## Library usage
 

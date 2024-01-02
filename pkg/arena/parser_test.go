@@ -45,7 +45,7 @@ func TestParseValdiation_NoStart(t *testing.T) {
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidArenaNoStart {
+	if err != ErrorInvalidArenaNoStart {
 		t.Errorf("expected InvalidArenaNoStart error but got %v", err)
 	}
 }
@@ -64,7 +64,7 @@ func TestParseValdiation_NoFinish(t *testing.T) {
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidArenaNoFinish {
+	if err != ErrorInvalidArenaNoFinish {
 		t.Errorf("expected InvalidArenaNoFinish error but got %v", err)
 	}
 }
@@ -83,7 +83,7 @@ func TestParseValdiation_MultipleStart(t *testing.T) {
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidArenaMultipleStart {
+	if err != ErrorInvalidArenaMultipleStart {
 		t.Errorf("expected InvalidArenaMultipleStart error but got %v", err)
 	}
 }
@@ -102,7 +102,7 @@ func TestParseValdiation_MultipleFinish(t *testing.T) {
 		"####################"
 
 	_, err := Parse(mapInput)
-	if err != InvalidArenaMultipleFinish {
+	if err != ErrorInvalidArenaMultipleFinish {
 		t.Errorf("expected InvalidArenaMultipleFinish error but got %v", err)
 	}
 }

@@ -6,3 +6,6 @@ run:
 
 test:
 	$(if $(GOTESTSUM_PATH), gotestsum --, go test) $(GO_TEST_FLAGS) ./...
+
+lint:
+	@golangci-lint run -c .golangci.yml

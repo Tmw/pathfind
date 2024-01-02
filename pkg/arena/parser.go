@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	InvalidArenaNoStart        = errors.New("invalid map: no start cell found")
-	InvalidArenaNoFinish       = errors.New("invalid map: no finish cell found")
-	InvalidArenaMultipleStart  = errors.New("invalid map: multiple start cells found")
-	InvalidArenaMultipleFinish = errors.New("invalid map: multiple finish cells found")
+	ErrorInvalidArenaNoStart        = errors.New("invalid map: no start cell found")
+	ErrorInvalidArenaNoFinish       = errors.New("invalid map: no finish cell found")
+	ErrorInvalidArenaMultipleStart  = errors.New("invalid map: multiple start cells found")
+	ErrorInvalidArenaMultipleFinish = errors.New("invalid map: multiple finish cells found")
 )
 
 var (
@@ -54,7 +54,7 @@ func findStartAndFinish(cells [][]CellType) (*Coordinate, *Coordinate, error) {
 			cell := cells[y][x]
 			if cell == CellTypeStart {
 				if start != nil {
-					return start, finish, InvalidArenaMultipleStart
+					return start, finish, ErrorInvalidArenaMultipleStart
 				}
 
 				start = &Coordinate{x: x, y: y}
@@ -62,7 +62,7 @@ func findStartAndFinish(cells [][]CellType) (*Coordinate, *Coordinate, error) {
 
 			if cell == CellTypeFinish {
 				if finish != nil {
-					return start, finish, InvalidArenaMultipleFinish
+					return start, finish, ErrorInvalidArenaMultipleFinish
 				}
 
 				finish = &Coordinate{x: x, y: y}
@@ -71,11 +71,11 @@ func findStartAndFinish(cells [][]CellType) (*Coordinate, *Coordinate, error) {
 	}
 
 	if start == nil {
-		return start, finish, InvalidArenaNoStart
+		return start, finish, ErrorInvalidArenaNoStart
 	}
 
 	if finish == nil {
-		return start, finish, InvalidArenaNoFinish
+		return start, finish, ErrorInvalidArenaNoFinish
 	}
 
 	return start, finish, nil
