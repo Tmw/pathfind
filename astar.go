@@ -4,12 +4,6 @@ import (
 	"github.com/tmw/pathfind/pkg/prioqueue"
 )
 
-type candidate[T comparable] struct {
-	coord  T
-	parent *candidate[T]
-	cost   int
-}
-
 type AStar[T comparable] struct {
 	candidates *prioqueue.Prioqueue[candidate[T]]
 	visited    map[T]struct{}
@@ -37,8 +31,8 @@ func (w *AStar[T]) isVisited(c T) bool {
 	return v
 }
 
-func (w *AStar[T]) isFinish(c T) bool {
-	return w.adapter.IsFinish(c)
+func (w *AStar[T]) visit(c T) {
+	w.visited[c] = struct{}{}
 }
 
 func (w *AStar[T]) Walk() []T {
@@ -47,14 +41,8 @@ func (w *AStar[T]) Walk() []T {
 	for w.candidates.Len() > 0 {
 		currentNode := w.candidates.Pop()
 
-		if w.isFinish(currentNode.coord) {
-			hop := currentNode
-			for hop.parent != nil {
-				path = append(path, hop.coord)
-				hop = *hop.parent
-			}
-
-			return path
+		if w.adapter.IsFinish(currentNode.coord) {
+			return backtrace[T](currentNode)
 		}
 
 		neighbours := w.adapter.Neighbours(currentNode.coord)
@@ -85,7 +73,8 @@ func (w *AStar[T]) Walk() []T {
 				w.candidates.Push(newCandidate, neighbourCost)
 			}
 		}
-		w.visited[currentNode.coord] = struct{}{}
+
+		w.visit(currentNode.coord)
 	}
 
 	return path
