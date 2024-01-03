@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -106,7 +107,7 @@ func solve(input string) error {
 		return err
 	}
 
-	w := pathfind.NewAStar[arena.Coordinate](a.StartCoordinate(), &pathfind.FuncAdapter[arena.Coordinate]{
+	w := pathfind.NewBFS[arena.Coordinate](a.StartCoordinate(), &pathfind.FuncAdapter[arena.Coordinate]{
 		NeighboursFn: func(c arena.Coordinate) []arena.Coordinate {
 			n := a.NeighboursOfCoordinate(c)
 			return slices.DeleteFunc(n, func(c arena.Coordinate) bool {
@@ -123,10 +124,32 @@ func solve(input string) error {
 		},
 	})
 
+	w.MaxCost = 50
 	path := w.Walk()
 
 	if path != nil {
 		a.RenderWithPath(os.Stdout, path)
+		fmt.Print("\n\n")
+	}
+
+	for _, e := range w.EventLog() {
+		switch e.(type) {
+		case pathfind.EventCandidateAdded[arena.Coordinate]:
+			fmt.Printf("EventCandidateAdded: %+v\n", e)
+			break
+		case pathfind.EventCandidateVisited[arena.Coordinate]:
+			fmt.Printf("EventCandidateVisited: %+v\n", e)
+			break
+		case pathfind.EventFinishReached[arena.Coordinate]:
+			fmt.Printf("EventFinishReached: %+v\n", e)
+			break
+		case pathfind.EventUnsolvable:
+			fmt.Printf("EventUnsolvable: %+v\n", e)
+			break
+		case pathfind.EventMaxCostReached:
+			fmt.Printf("EventMaxCostReached: %+v\n", e)
+			break
+		}
 	}
 
 	return nil
