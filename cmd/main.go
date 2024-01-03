@@ -136,19 +136,18 @@ func solve(input string) error {
 		switch e.(type) {
 		case pathfind.EventCandidateAdded[arena.Coordinate]:
 			fmt.Printf("EventCandidateAdded: %+v\n", e)
-			break
+
 		case pathfind.EventCandidateVisited[arena.Coordinate]:
 			fmt.Printf("EventCandidateVisited: %+v\n", e)
-			break
+
 		case pathfind.EventFinishReached[arena.Coordinate]:
 			fmt.Printf("EventFinishReached: %+v\n", e)
-			break
+
 		case pathfind.EventUnsolvable:
 			fmt.Printf("EventUnsolvable: %+v\n", e)
-			break
+
 		case pathfind.EventMaxCostReached:
 			fmt.Printf("EventMaxCostReached: %+v\n", e)
-			break
 		}
 	}
 
