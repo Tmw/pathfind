@@ -23,7 +23,7 @@ func NewAStar[T comparable](start T, adapter Adapter[T]) AStar[T] {
 	}
 
 	candidates := prioqueue.New[candidate[T]]()
-	candidates.Push(sc, adapter.DistanceToFinish(start))
+	candidates.Push(sc, adapter.CostToFinish(start))
 
 	return AStar[T]{
 		candidates: candidates,
@@ -37,12 +37,8 @@ func (w *AStar[T]) isVisited(c T) bool {
 	return v
 }
 
-func (w *AStar[T]) isWalkable(c T) bool {
-	return w.adapter.IsCellWalkable(c)
-}
-
 func (w *AStar[T]) isFinish(c T) bool {
-	return w.adapter.IsCellFinish(c)
+	return w.adapter.IsFinish(c)
 }
 
 func (w *AStar[T]) Walk() []T {
@@ -63,7 +59,7 @@ func (w *AStar[T]) Walk() []T {
 
 		neighbours := w.adapter.Neighbours(currentNode.coord)
 		for _, n := range neighbours {
-			if w.isVisited(n) || !w.isWalkable(n) {
+			if w.isVisited(n) {
 				continue
 			}
 
@@ -80,12 +76,12 @@ func (w *AStar[T]) Walk() []T {
 			existingCandidateIdx := w.candidates.IndexFunc(predicate)
 			if existingCandidateIdx > 0 {
 				existingCandidate := w.candidates.PeekItem(existingCandidateIdx)
-				newCost := w.adapter.DistanceToFinish(n) + existingCandidate.cost
+				newCost := w.adapter.CostToFinish(n) + existingCandidate.cost
 				if newCost < w.candidates.PriorityOfItem(existingCandidateIdx) {
 					w.candidates.UpdateAtIndex(existingCandidateIdx, newCandidate, newCost)
 				}
 			} else {
-				neighbourCost := w.adapter.DistanceToFinish(n) + newCandidate.cost
+				neighbourCost := w.adapter.CostToFinish(n) + newCandidate.cost
 				w.candidates.Push(newCandidate, neighbourCost)
 			}
 		}

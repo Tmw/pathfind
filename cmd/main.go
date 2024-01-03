@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/tmw/pathfind"
 	"github.com/tmw/pathfind/pkg/arena"
@@ -107,18 +108,17 @@ func solve(input string) error {
 
 	w := pathfind.NewAStar[arena.Coordinate](a.StartCoordinate(), &pathfind.FuncAdapter[arena.Coordinate]{
 		NeighboursFn: func(c arena.Coordinate) []arena.Coordinate {
-			return a.NeighboursOfCoordinate(c)
+			n := a.NeighboursOfCoordinate(c)
+			return slices.DeleteFunc(n, func(c arena.Coordinate) bool {
+				return a.CellTypeForCoordinate(c) == arena.CellTypeNonWalkable
+			})
 		},
 
-		DistanceToFinishFn: func(c arena.Coordinate) int {
+		CostToFinishFn: func(c arena.Coordinate) int {
 			return c.DistanceTo(a.FinishCoordinate())
 		},
 
-		IsCellWalkableFn: func(c arena.Coordinate) bool {
-			return a.CellTypeForCoordinate(c) != arena.CellTypeNonWalkable
-		},
-
-		IsCellFinishFn: func(c arena.Coordinate) bool {
+		IsFinishFn: func(c arena.Coordinate) bool {
 			return a.CellTypeForCoordinate(c) == arena.CellTypeFinish
 		},
 	})
