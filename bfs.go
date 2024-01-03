@@ -7,16 +7,11 @@ import (
 	"github.com/tmw/pathfind/pkg/slice"
 )
 
-type BFS[T comparable] struct {
+type bfs[T comparable] struct {
 	candidates queue.Queue[candidate[T]]
-	visited    map[T]struct{}
-	adapter    Adapter[T]
-	eventlog   []Event
-
-	MaxCost int
 }
 
-func NewBFS[T comparable](start T, adapter Adapter[T]) BFS[T] {
+func newBFS[T comparable](start T) *bfs[T] {
 	sc := candidate[T]{
 		coord:  start,
 		parent: nil,
@@ -24,53 +19,40 @@ func NewBFS[T comparable](start T, adapter Adapter[T]) BFS[T] {
 
 	candidates := queue.New[candidate[T]](sc)
 
-	return BFS[T]{
+	return &bfs[T]{
 		candidates: candidates,
-		visited:    make(map[T]struct{}),
-		adapter:    adapter,
 	}
 }
 
-func (w *BFS[T]) IsVisited(c T) bool {
-	_, found := w.visited[c]
-	return found
-}
-
-func (w *BFS[T]) visit(c T) {
-	w.visited[c] = struct{}{}
-}
-
-func (w *BFS[T]) publish(e Event) {
-	w.eventlog = append(w.eventlog, e)
-}
-
-func (w *BFS[T]) EventLog() []Event {
-	return w.eventlog
-}
-
-func (w *BFS[T]) Walk() []T {
+func (w *bfs[T]) Walk(ctx SolveContext[T]) []T {
 	for w.candidates.Len() > 0 {
 		c := w.candidates.Pop()
-		w.publish(EventCandidateVisited[T]{CandidateID: c.coord})
 
-		if w.MaxCost > 0 && c.cost >= w.MaxCost {
-			w.publish(EventMaxCostReached{})
+		// in case we enqueued the same node multiple times.
+		if ctx.IsVisited(c.coord) {
+			continue
+		}
+
+		ctx.Publish(EventCandidateVisited[T]{CandidateID: c.coord})
+
+		if ctx.MaxCost > 0 && c.cost >= ctx.MaxCost {
+			ctx.Publish(EventMaxCostReached{})
 			break
 		}
 
-		if w.adapter.IsFinish(c.coord) {
+		if ctx.Adapter().IsFinish(c.coord) {
 			path := backtrace[T](c)
-			w.publish(EventFinishReached[T]{Path: path})
+			ctx.Publish(EventFinishReached[T]{Path: path})
 			return path
 		}
 
-		w.visit(c.coord)
+		ctx.Visit(c.coord)
 
-		neighbours := w.adapter.Neighbours(c.coord)
-		unvisited := slices.DeleteFunc(neighbours, w.IsVisited)
+		neighbours := ctx.Adapter().Neighbours(c.coord)
+		unvisited := slices.DeleteFunc(neighbours, ctx.IsVisited)
 
 		for idx := range unvisited {
-			w.publish(EventCandidateAdded[T]{CandidateID: unvisited[idx]})
+			ctx.Publish(EventCandidateAdded[T]{CandidateID: unvisited[idx]})
 		}
 
 		candidates := slice.Map(unvisited, func(n T) candidate[T] {
@@ -84,6 +66,6 @@ func (w *BFS[T]) Walk() []T {
 		w.candidates.Push(candidates...)
 	}
 
-	w.publish(EventUnsolvable{})
+	ctx.Publish(EventUnsolvable{})
 	return []T{}
 }

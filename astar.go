@@ -4,66 +4,44 @@ import (
 	"github.com/tmw/pathfind/pkg/prioqueue"
 )
 
-type AStar[T comparable] struct {
+type astar[T comparable] struct {
 	candidates *prioqueue.Prioqueue[candidate[T]]
-	visited    map[T]struct{}
-	adapter    Adapter[T]
-	eventlog   []Event
-
-	MaxCost int
+	start      T
 }
 
-func NewAStar[T comparable](start T, adapter Adapter[T]) AStar[T] {
+func newAStar[T comparable](start T) *astar[T] {
+	return &astar[T]{
+		start:      start,
+		candidates: prioqueue.New[candidate[T]](),
+	}
+}
+
+func (w *astar[T]) Walk(ctx SolveContext[T]) []T {
+	// add initial starting position
 	sc := candidate[T]{
-		coord:  start,
+		coord:  w.start,
 		parent: nil,
 	}
+	w.candidates.Push(sc, ctx.Adapter().CostToFinish(w.start))
 
-	candidates := prioqueue.New[candidate[T]]()
-	candidates.Push(sc, adapter.CostToFinish(start))
-
-	return AStar[T]{
-		candidates: candidates,
-		visited:    make(map[T]struct{}),
-		adapter:    adapter,
-	}
-}
-
-func (w *AStar[T]) isVisited(c T) bool {
-	_, v := w.visited[c]
-	return v
-}
-
-func (w *AStar[T]) visit(c T) {
-	w.visited[c] = struct{}{}
-}
-
-func (w *AStar[T]) publish(e Event) {
-	w.eventlog = append(w.eventlog, e)
-}
-
-func (w *AStar[T]) EventLog() []Event {
-	return w.eventlog
-}
-
-func (w *AStar[T]) Walk() []T {
+	// main loop
 	for w.candidates.Len() > 0 {
 		currentNode := w.candidates.Pop()
 
-		if w.MaxCost > 0 && currentNode.cost >= w.MaxCost {
-			w.publish(EventMaxCostReached{})
+		if ctx.MaxCost > 0 && currentNode.cost >= ctx.MaxCost {
+			ctx.Publish(EventMaxCostReached{})
 			break
 		}
 
-		if w.adapter.IsFinish(currentNode.coord) {
+		if ctx.Adapter().IsFinish(currentNode.coord) {
 			path := backtrace[T](currentNode)
-			w.publish(EventFinishReached[T]{Path: path})
+			ctx.Publish(EventFinishReached[T]{Path: path})
 			return path
 		}
 
-		neighbours := w.adapter.Neighbours(currentNode.coord)
+		neighbours := ctx.Adapter().Neighbours(currentNode.coord)
 		for _, n := range neighbours {
-			if w.isVisited(n) {
+			if ctx.IsVisited(n) {
 				continue
 			}
 
@@ -80,21 +58,21 @@ func (w *AStar[T]) Walk() []T {
 			existingCandidateIdx := w.candidates.IndexFunc(predicate)
 			if existingCandidateIdx > 0 {
 				existingCandidate := w.candidates.PeekItem(existingCandidateIdx)
-				newCost := w.adapter.CostToFinish(n) + existingCandidate.cost
+				newCost := ctx.Adapter().CostToFinish(n) + existingCandidate.cost
 				if newCost < w.candidates.PriorityOfItem(existingCandidateIdx) {
 					w.candidates.UpdateAtIndex(existingCandidateIdx, newCandidate, newCost)
 				}
 			} else {
-				neighbourCost := w.adapter.CostToFinish(n) + newCandidate.cost
+				neighbourCost := ctx.Adapter().CostToFinish(n) + newCandidate.cost
 				w.candidates.Push(newCandidate, neighbourCost)
-				w.publish(EventCandidateAdded[T]{CandidateID: newCandidate.coord})
+				ctx.Publish(EventCandidateAdded[T]{CandidateID: newCandidate.coord})
 			}
 		}
 
-		w.visit(currentNode.coord)
-		w.publish(EventCandidateVisited[T]{CandidateID: currentNode.coord})
+		ctx.Visit(currentNode.coord)
+		ctx.Publish(EventCandidateVisited[T]{CandidateID: currentNode.coord})
 	}
 
-	w.publish(EventUnsolvable{})
+	ctx.Publish(EventUnsolvable{})
 	return []T{}
 }

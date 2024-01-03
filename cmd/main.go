@@ -7,13 +7,16 @@ import (
 	"log"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/tmw/pathfind"
 	"github.com/tmw/pathfind/pkg/arena"
 )
 
 var (
-	filename string
+	filename  string
+	algorithm string
+	verbose   bool
 
 	// configure map symbols
 	symbolNonWalkable string
@@ -30,10 +33,16 @@ func init() {
 	flag.StringVar(&symbolStart, "symbolStart", "", "symbol for tile of type start")
 	flag.StringVar(&symbolFinish, "symbolFinish", "", "symbol for tile of type finish")
 	flag.StringVar(&symbolPath, "symbolPath", "", "symbol for tile of type path")
+	flag.StringVar(&algorithm, "algorithm", "astar", "algorithm to use. either astar or bfs are supported")
+	flag.BoolVar(&verbose, "verbose", true, "print runtime information")
 }
 
 func main() {
 	flag.Parse()
+
+	if !slices.Contains([]string{"astar", "bfs"}, algorithm) {
+		log.Fatal("provided algorithm not supported, must be any of: astar, bfs")
+	}
 
 	contents, err := getContents()
 	if err != nil {
@@ -45,6 +54,14 @@ func main() {
 	if err := solve(contents); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getAlgorithm() pathfind.Algorithm {
+	if algorithm == "bfs" {
+		return pathfind.AlgorithmBFS
+	}
+
+	return pathfind.AlgorithmAStar
 }
 
 func assignSymbols() {
@@ -107,48 +124,48 @@ func solve(input string) error {
 		return err
 	}
 
-	w := pathfind.NewBFS[arena.Coordinate](a.StartCoordinate(), &pathfind.FuncAdapter[arena.Coordinate]{
-		NeighboursFn: func(c arena.Coordinate) []arena.Coordinate {
-			n := a.NeighboursOfCoordinate(c)
-			return slices.DeleteFunc(n, func(c arena.Coordinate) bool {
-				return a.CellTypeForCoordinate(c) == arena.CellTypeNonWalkable
-			})
-		},
+	s := pathfind.NewSolver[arena.Coordinate](
+		getAlgorithm(),
+		a.StartCoordinate(),
+		&pathfind.FuncAdapter[arena.Coordinate]{
+			NeighboursFn: func(c arena.Coordinate) []arena.Coordinate {
+				n := a.NeighboursOfCoordinate(c)
+				return slices.DeleteFunc(n, func(c arena.Coordinate) bool {
+					return a.CellTypeForCoordinate(c) == arena.CellTypeNonWalkable
+				})
+			},
 
-		CostToFinishFn: func(c arena.Coordinate) int {
-			return c.DistanceTo(a.FinishCoordinate())
-		},
+			CostToFinishFn: func(c arena.Coordinate) int {
+				return c.DistanceTo(a.FinishCoordinate())
+			},
 
-		IsFinishFn: func(c arena.Coordinate) bool {
-			return a.CellTypeForCoordinate(c) == arena.CellTypeFinish
+			IsFinishFn: func(c arena.Coordinate) bool {
+				return a.CellTypeForCoordinate(c) == arena.CellTypeFinish
+			},
 		},
-	})
+	)
 
-	w.MaxCost = 50
-	path := w.Walk()
+	s.MaxCost = 50
+	start := time.Now()
+	path := s.Walk()
+	duration := time.Since(start)
 
 	if path != nil {
 		a.RenderWithPath(os.Stdout, path)
 		fmt.Print("\n\n")
 	}
 
-	for _, e := range w.EventLog() {
-		switch e.(type) {
-		case pathfind.EventCandidateAdded[arena.Coordinate]:
-			fmt.Printf("EventCandidateAdded: %+v\n", e)
-
-		case pathfind.EventCandidateVisited[arena.Coordinate]:
-			fmt.Printf("EventCandidateVisited: %+v\n", e)
-
-		case pathfind.EventFinishReached[arena.Coordinate]:
-			fmt.Printf("EventFinishReached: %+v\n", e)
-
-		case pathfind.EventUnsolvable:
-			fmt.Printf("EventUnsolvable: %+v\n", e)
-
-		case pathfind.EventMaxCostReached:
-			fmt.Printf("EventMaxCostReached: %+v\n", e)
+	if verbose {
+		candidates := make(map[arena.Coordinate]struct{})
+		for _, e := range s.EventLog() {
+			if cv, ok := e.(pathfind.EventCandidateVisited[arena.Coordinate]); ok {
+				candidates[cv.CandidateID] = struct{}{}
+			}
 		}
+
+		fmt.Printf("used algorithm: \t\t%s\n", algorithm)
+		fmt.Printf("duration: \t\t\t%s\n", duration)
+		fmt.Printf("unique candidates visited: \t%d\n", len(candidates))
 	}
 
 	return nil
