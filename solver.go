@@ -5,7 +5,6 @@ type Algorithm int
 const (
 	AlgorithmBFS Algorithm = iota
 	AlgorithmAStar
-	AlgorithmDijkstra
 )
 
 type Solver[T comparable] struct {
