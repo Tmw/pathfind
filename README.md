@@ -1,6 +1,6 @@
 # Pathfind
 
-Currently only offers a generic astar algorithm.
+Currently offers generic unweighted A\* and BFS algorithm.
 
 ## CLI Usage
 
